@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from python_script import main
 import gc
 
-
 app = FastAPI()
 
 origins = [
@@ -25,5 +24,5 @@ class Item(BaseModel):
 
 @app.post("/run_script")
 async def run_script(item: Item):
-    output = main(item.input) # changed this line
+    output = await main(item.input)  # Added await here
     return {"output": output}

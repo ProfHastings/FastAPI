@@ -192,13 +192,12 @@ def smart_retriever(question):
     gc.collect()
     return results
 
-def main(question):
+async def main(question):  # Added async here
     if not isinstance(question, str):
         print("Invalid input. Please provide a string.")
         return
     retriever = get_retriever()
     dataquery = get_dataquery(question)
-    #dataquery = "Verletzt der Arbeitgeber schuldhaft seine Fürsorgepflicht und entsteht dem Arbeitnehmer ein Schaden, so trifft den Arbeitgeber eine Schadenersatzpflicht (vgl Pfeil in Schwimann, ABGB³ V § 1157 Rz 32; Marhold in Marhold/Burgstaller/Preyer, AngG § 18 Rz 120 ua). Der Kläger macht Gesundheitsschäden und damit zusammenhängenden Verdienstentgang und sonstige Kosten geltend, die auf die Verletzung der Abhilfeverpflichtung der Beklagten zurückzuführen sein sollen. Diese Schadenersatzansprüche unterliegen den allgemeinen Voraussetzungen des Schadenersatzrechts (vgl Mosler in ZellKomm² AngG § 18 Rz 132 ua), insbesondere auch in Bezug auf das Vorliegen eines Schadens und dessen Verursachung durch den Schädiger. Für beides trägt der Geschädigte die Beweislast. Der Kläger hat dazu auch entsprechende Behauptungen in erster Instanz aufgestellt, die von der Beklagten bestritten wurden. Dafür, dass beim Kläger eine psychische Erkrankung eingetreten ist, scheinen vom Kläger vorgelegte ärztliche Befunde zu sprechen. Konkrete Tatsachenfeststellungen des Erstgerichts oder Außerstreitstellungen der Parteien dazu fehlen aber bisher. Da die vom Kläger behauptete psychische Erkrankung bisher nicht festgestellt wurde, wurden auch keine Feststellungen getroffen, wodurch diese Erkrankung nun tatsächlich verursacht wurde. Der Kläger steht auf dem Standpunkt, dass seine psychische Erkrankung auf die von der Beklagten nicht unterbundenen Beschimpfungen und Schikanen zurückzuführen sei. Dies wurde von der Beklagten bestritten. Die Frage der Verursachung der vom Kläger verursachten Schäden harrt daher einer Klärung im zweiten Rechtsgang. Dabei ist auf den Zeitraum der Verletzung der Fürsorgepflicht ab 7. 11. 2008 abzustellen. "
     results = retriever.get_relevant_documents(dataquery)
     #results = smart_retriever(question)
     #gc.collect()
@@ -206,11 +205,10 @@ def main(question):
     #    print (result.page_content, "\n", "\n")
     #return
     #print(f"{len(results)} chunks found in database")
+    results, sum_of_relevance = await rank_concurrently(results, question)  # Replaced rank_cases with rank_concurrently
 
-    results = rank_cases(results=results, question=question)
-    
-    #print(results)
-    
+    print(f"Average relevance score: {sum_of_relevance/len(results)}")
+
     max_tokens = ((gpt4_maxtokens - response_maxtokens) - 20) - (len(list(tokenizer.encode(analysis_template_string))) + len(list(tokenizer.encode(question))))
     sources = fill_tokens(results=results, max_tokens=max_tokens)
     analysis_userprompt = analysis_template.format(question=question, sources=sources)
