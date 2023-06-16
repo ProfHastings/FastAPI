@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import python_script
+from python_script import main
 import gc
+
 
 app = FastAPI()
 
@@ -10,7 +11,6 @@ origins = [
     "http://localhost:3000",
     "https://www.zeilertech.com",
 ]
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,11 +20,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 class Item(BaseModel):
     input: str
 
 @app.post("/run_script")
 async def run_script(item: Item):
-    output = python_script.run_script(item.input)
+    output = main(item.input) # changed this line
     return {"output": output}
