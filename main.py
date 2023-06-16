@@ -25,4 +25,4 @@ class Item(BaseModel):
 @app.post("/run_script")
 async def run_script(item: Item):
     output = await main(item.input)  # Added await here
-    return output
+    return {"output": output}
