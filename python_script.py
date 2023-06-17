@@ -65,12 +65,18 @@ Skaliere die Relevanz auf einer Skala von 1 bis 10 und antworte mit dieser Zahl
 ranking_template = PromptTemplate.from_template(ranking_template_string)
 
 #template for database query prompt
-dataquery_system_message = SystemMessage(content="Du bist ein im österreichischen Recht erfahrener Anwalt. Du antwortest nur genau mit dem was von dir gefragt ist und ausführlich.")
+dataquery_system_message = SystemMessage(content="You are a lawyer and only write the answers to questions and only answer in german language")
 dataquery_template_string = """
-Ein Klient kommt zu dir mit der folgenden Frage.
+Generate a paragraph of a court decision from the U.S. Supreme Court Database in german language about the topic of:
 "{question}"
-Schreibe eine Liste mit den wichtigsten rechtlichen Fragen die sich zu dieser Situation stellen. Verwende die genaue juristische Terminologie.
+Do not mention the US supreme court and write as if this is a real case
 """
+#dataquery_system_message = SystemMessage(content="Du bist ein im österreichischen Recht erfahrener Anwalt. Du antwortest nur genau mit dem was von dir gefragt ist und ausführlich.")
+#dataquery_template_string = """
+#Ein Klient kommt zu dir mit der folgenden Frage.
+#"{question}"
+#Schreibe eine Liste mit den wichtigsten rechtlichen Fragen die sich zu dieser Situation stellen. Verwende die genaue juristische Terminologie.
+#"""
 #dataquery_system_message = SystemMessage(content="Du bist ein im österreichischen Recht erfahrener Anwalt. Du schreibst nur die Antwort auf Fragen.")
 #dataquery_template_string = """
 #Du hast die folgende informell formulierte Frage:"
