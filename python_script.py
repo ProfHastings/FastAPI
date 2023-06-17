@@ -215,7 +215,7 @@ async def main(question):  # Added async here
 
     print(f"Average relevance score: {sum_of_relevance/len(results)}")
 
-    max_tokens = ((gpt4_maxtokens - response_maxtokens) - 20) - (len(list(tokenizer.encode(analysis_template_string))) + len(list(tokenizer.encode(question))))
+    max_tokens = ((gpt4_maxtokens - response_maxtokens) - 30) - (len(list(tokenizer.encode(analysis_template_string))) + len(list(tokenizer.encode(question))))
     sources = fill_tokens(results=results, max_tokens=max_tokens)
     analysis_userprompt = analysis_template.format(question=question, sources=sources)
     print(analysis_userprompt)
