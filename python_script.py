@@ -205,6 +205,7 @@ async def main(question):  # Added async here
     retriever = get_retriever()
     dataquery = get_dataquery(question)
     results = retriever.get_relevant_documents(dataquery)
+    print(f"Found this many cases: {len(results)}")
     #results = smart_retriever(question)
     #gc.collect()
     #for result in results:
@@ -214,6 +215,7 @@ async def main(question):  # Added async here
     results, sum_of_relevance = await rank_concurrently(results, question)  # Replaced rank_cases with rank_concurrently
 
     print(f"Average relevance score: {sum_of_relevance/len(results)}")
+    print(f"Rated this many cases: {len(results)}")
 
     max_tokens = ((gpt4_maxtokens - response_maxtokens) - 30) - (len(list(tokenizer.encode(analysis_template_string))) + len(list(tokenizer.encode(question))))
     sources = fill_tokens(results=results, max_tokens=max_tokens)
