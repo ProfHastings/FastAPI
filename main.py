@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from queue import Queue
 import asyncio
+from fastapi.responses import StreamingResponse
 
 app = FastAPI()
 
@@ -36,9 +37,9 @@ async def run_script(background_tasks: BackgroundTasks, item: Item):
     return Response(status_code=202)
 
 @app.get("/stream")
-async def stream() -> asyncio.StreamingResponse:
+async def stream() -> StreamingResponse:
     async def event_stream():
         while True:
             token = queue.get()
             yield f"data:{token}\n\n"
-    return asyncio.StreamingResponse(event_stream(), media_type="text/event-stream")
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
