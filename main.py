@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from queue import Queue
 import json
 import threading
+import asyncio
 
 app = FastAPI()
 
@@ -38,8 +39,7 @@ async def websocket_endpoint(websocket: WebSocket):
         data = await websocket.receive_text()
         item = Item(**json.loads(data))
         handler = BaseCallbackHandler()
-        thread = threading.Thread(target=main, args=(item.input, handler, queue))
-        thread.start()
+        task = asyncio.create_task(main(item.input, handler, queue))
         while True:
             token = queue.get()
             if token == "DONE":
