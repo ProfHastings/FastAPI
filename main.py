@@ -6,6 +6,10 @@ from queue import Queue
 import json
 import threading
 import asyncio
+from pydantic import BaseModel, ValidationError
+
+class Item(BaseModel):
+    input: str
 
 app = FastAPI()
 
@@ -39,8 +43,12 @@ async def websocket_endpoint(websocket: WebSocket):
         print("Waiting for client data...")
         data = await websocket.receive_text()
         print(f"Received data: {data}")
-        item = Item(**json.loads(data))
-        print(f"Received item: {item}")
+        try:
+            item = Item(**json.loads(data))
+            print(f"Received item: {item}")
+        except ValidationError as e:
+            print(f"Error: {e}")
+            continue
         handler = BaseCallbackHandler()
         task = asyncio.create_task(main(item.input, handler, queue))
         print("Started task")

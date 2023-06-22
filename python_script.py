@@ -198,7 +198,8 @@ def smart_retriever(question):
     gc.collect()
     return results
 
-async def main(question, streamhandler, queue):  # Added async here
+async def main(question, streamhandler, queue):
+    print("main has started execution")
     if not isinstance(question, str):
         print("Invalid input. Please provide a string.")
         return
