@@ -265,26 +265,23 @@ class Item(BaseModel):
 
 
 class MyCustomAsyncHandler(AsyncCallbackHandler):
-    queue = None
-
-    @classmethod
-    def set_queue(cls, queue):
-        cls.queue = queue
+    def __init__(self, queue):
+        super().__init__()
+        self.queue = queue
 
     async def on_llm_new_token(self, token: str, **kwargs) -> None:
         print(f"Async handler being called: token: {token}")
-        if MyCustomAsyncHandler.queue is not None:
-            await MyCustomAsyncHandler.queue.put(token)
+        if self.queue is not None:
+            await self.queue.put(token)
         else:
             print("Error: queue is not set")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    queue = asyncio.Queue()
-    MyCustomAsyncHandler.set_queue(queue)
     while True:
         print("Waiting for client data...")
+        queue = asyncio.Queue()
         data = await websocket.receive_text()
         print(f"Received data: {data}")
         try:
@@ -293,7 +290,7 @@ async def websocket_endpoint(websocket: WebSocket):
         except ValidationError as e:
             print(f"Error: {e}")
             continue
-        handler = MyCustomAsyncHandler()
+        handler = MyCustomAsyncHandler(queue)
         asyncio.create_task(main(item.input, handler))
         await queue.put("test1")
         print("Started task")
@@ -304,6 +301,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 print("Done sending response")
                 break
             await websocket.send_text(token)
-            
+
 if __name__ == "__main__":
     asyncio.run(main("Alfred arbeitet in einer Fabrik und schläft wo während er am Fließband arbeitet. Es entsteht ein erheblicher Schaden. Kann er zu Schadenersatz verurteilt werden?"))
