@@ -6,6 +6,7 @@ from queue import Queue
 import json
 import asyncio
 from pydantic import BaseModel, ValidationError
+from langchain.callbacks.base import AsyncCallbackHandler
 
 class Item(BaseModel):
     input: str
@@ -31,8 +32,9 @@ class Item(BaseModel):
 
 queue = asyncio.Queue()
 
-class BaseCallbackHandler:
-    async def on_llm_new_token(self, token):
+class MyCustomAsyncHandler(AsyncCallbackHandler):
+    async def on_llm_new_token(self, token: str, **kwargs) -> None:
+        print(f"Async handler being called: token: {token}")
         await queue.put(token)
 
 @app.websocket("/ws")
@@ -48,7 +50,7 @@ async def websocket_endpoint(websocket: WebSocket):
         except ValidationError as e:
             print(f"Error: {e}")
             continue
-        handler = BaseCallbackHandler()
+        handler = MyCustomAsyncHandler()
         task = asyncio.create_task(main(item.input, handler, queue))
         print("Started task")
         print(task.done)

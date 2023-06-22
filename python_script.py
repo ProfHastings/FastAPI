@@ -223,7 +223,7 @@ async def main(question, streamhandler, queue):
     analysis_userprompt = analysis_template.format(question=question, sources=sources)
     print(analysis_userprompt)
     user_message = HumanMessage(content=analysis_userprompt)
-    response = gpt4([analysis_system_message, user_message], streamhandler)
+    response = await gpt4.agenerate([analysis_system_message, user_message], streamhandler)
     await queue.put("DONE")
     return response.content
 
