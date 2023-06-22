@@ -18,7 +18,6 @@ import gc
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from queue import Queue
 import json
 import asyncio
 from pydantic import BaseModel, ValidationError
@@ -206,7 +205,7 @@ def smart_retriever(question):
     gc.collect()
     return results
 
-async def main(question, streamhandler, queue):
+async def main(question, streamhandler):
     print("main has started execution")
     if not isinstance(question, str):
         print("Invalid input. Please provide a string.")
@@ -232,11 +231,14 @@ async def main(question, streamhandler, queue):
     print(analysis_userprompt)
     user_message = HumanMessage(content=analysis_userprompt)
     gpt4analysis = ChatOpenAI(model_name="gpt-4", temperature=0, max_tokens=2048, streaming=True, callbacks=streamhandler)
-    await queue.put("test2")
-    response = await gpt4analysis([analysis_system_message, user_message])
+    #await queue.put("test2")
+    try:
+        response = await gpt4analysis([analysis_system_message, user_message])
+    except Exception as e:
+        print(f"Exception during gpt4analysis: {e}")
     print(response)
-    await queue.put("test3")
-    await queue.put("DONE")
+    #await queue.put("test3")
+    #await queue.put("DONE")
     return response.content
 
 class Item(BaseModel):
@@ -261,16 +263,26 @@ app.add_middleware(
 class Item(BaseModel):
     input: str
 
-queue = asyncio.Queue()
 
 class MyCustomAsyncHandler(AsyncCallbackHandler):
+    queue = None
+
+    @classmethod
+    def set_queue(cls, queue):
+        cls.queue = queue
+
     async def on_llm_new_token(self, token: str, **kwargs) -> None:
         print(f"Async handler being called: token: {token}")
-        await queue.put(token)
+        if MyCustomAsyncHandler.queue is not None:
+            await MyCustomAsyncHandler.queue.put(token)
+        else:
+            print("Error: queue is not set")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    queue = asyncio.Queue()
+    MyCustomAsyncHandler.set_queue(queue)
     while True:
         print("Waiting for client data...")
         data = await websocket.receive_text()
@@ -282,7 +294,7 @@ async def websocket_endpoint(websocket: WebSocket):
             print(f"Error: {e}")
             continue
         handler = MyCustomAsyncHandler()
-        task = asyncio.create_task(main(item.input, handler, queue))
+        asyncio.create_task(main(item.input, handler))
         await queue.put("test1")
         print("Started task")
         while True:
@@ -292,6 +304,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 print("Done sending response")
                 break
             await websocket.send_text(token)
-
+            
 if __name__ == "__main__":
     asyncio.run(main("Alfred arbeitet in einer Fabrik und schläft wo während er am Fließband arbeitet. Es entsteht ein erheblicher Schaden. Kann er zu Schadenersatz verurteilt werden?"))
