@@ -198,7 +198,7 @@ def smart_retriever(question):
     gc.collect()
     return results
 
-async def main(question, streamhandler):  # Added async here
+async def main(question, streamhandler, queue):  # Added async here
     if not isinstance(question, str):
         print("Invalid input. Please provide a string.")
         return
@@ -223,6 +223,7 @@ async def main(question, streamhandler):  # Added async here
     print(analysis_userprompt)
     user_message = HumanMessage(content=analysis_userprompt)
     response = gpt4([analysis_system_message, user_message], streamhandler)
+    queue.put("DONE")
     return response.content
 
 if __name__ == "__main__":
