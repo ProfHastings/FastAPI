@@ -230,10 +230,10 @@ async def main(question, streamhandler, queue):
     analysis_userprompt = analysis_template.format(question=question, sources=sources)
     print(analysis_userprompt)
     user_message = HumanMessage(content=analysis_userprompt)
-    gpt4analysis = ChatOpenAI(model_name="gpt-4", temperature=0, max_tokens=2048, streaming=True, callbacks=streamhandler)
+    gpt4analysis = ChatOpenAI(model_name="gpt-4", temperature=0, max_tokens=2048, streaming=True, callbacks=[streamhandler])
     await queue.put("test2")
     try:
-        response = await gpt4analysis([analysis_system_message, user_message])
+        response = await gpt4analysis.agenerate([analysis_system_message, user_message])
     except Exception as e:
         print(f"Exception during gpt4analysis: {e}")
     print(response)
