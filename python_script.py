@@ -15,6 +15,14 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 import asyncio
 from langchain.embeddings import OpenAIEmbeddings
 import gc
+from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from queue import Queue
+import json
+import asyncio
+from pydantic import BaseModel, ValidationError
+from langchain.callbacks.base import AsyncCallbackHandler
 
 #init of global gpt-4 model, gpt-3.5-turbo model and OpenAI tokenizer
 gpt4_maxtokens = 8192
@@ -229,6 +237,60 @@ async def main(question, streamhandler, queue):
     await queue.put("test3")
     await queue.put("DONE")
     return response.content
+
+class Item(BaseModel):
+    input: str
+
+app = FastAPI()
+
+origins = [
+    "http://localhost:3000",
+    "https://www.zeilertech.com",
+    "https://www.profhastings.com"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class Item(BaseModel):
+    input: str
+
+queue = asyncio.Queue()
+
+class MyCustomAsyncHandler(AsyncCallbackHandler):
+    async def on_llm_new_token(self, token: str, **kwargs) -> None:
+        print(f"Async handler being called: token: {token}")
+        await queue.put(token)
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    while True:
+        print("Waiting for client data...")
+        data = await websocket.receive_text()
+        print(f"Received data: {data}")
+        try:
+            item = Item(**json.loads(data))
+            print(f"Received item: {item.input}")
+        except ValidationError as e:
+            print(f"Error: {e}")
+            continue
+        handler = MyCustomAsyncHandler()
+        task = asyncio.create_task(main(item.input, handler, queue))
+        #await queue.put("test1")
+        print("Started task")
+        while True:
+            token = await queue.get()
+            print(token)
+            if token == "DONE":
+                print("Done sending response")
+                break
+            await websocket.send_text(token)
 
 if __name__ == "__main__":
     asyncio.run(main("Alfred arbeitet in einer Fabrik und schläft wo während er am Fließband arbeitet. Es entsteht ein erheblicher Schaden. Kann er zu Schadenersatz verurteilt werden?"))
