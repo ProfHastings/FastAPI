@@ -52,8 +52,8 @@ async def websocket_endpoint(websocket: WebSocket):
             continue
         handler = MyCustomAsyncHandler()
         task = asyncio.create_task(main(item.input, handler, queue))
+        await queue.put("test1")
         print("Started task")
-        print(task.done)
         while True:
             token = await queue.get()
             print(token)
