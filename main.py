@@ -40,8 +40,10 @@ async def websocket_endpoint(websocket: WebSocket):
         data = await websocket.receive_text()
         print(f"Received data: {data}")
         item = Item(**json.loads(data))
+        print(f"Received item: {item}")
         handler = BaseCallbackHandler()
         task = asyncio.create_task(main(item.input, handler, queue))
+        print("Started task")
         while True:
             token = queue.get()
             if token == "DONE":
