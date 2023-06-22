@@ -224,7 +224,7 @@ async def main(question, streamhandler, queue):
     print(analysis_userprompt)
     user_message = HumanMessage(content=analysis_userprompt)
     response = gpt4([analysis_system_message, user_message], streamhandler)
-    queue.put("DONE")
+    await queue.put("DONE")
     return response.content
 
 if __name__ == "__main__":
