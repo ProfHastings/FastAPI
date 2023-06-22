@@ -36,7 +36,9 @@ class BaseCallbackHandler:
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     while True:
+        print("Waiting for client data...")
         data = await websocket.receive_text()
+        print(f"Received data: {data}")
         item = Item(**json.loads(data))
         handler = BaseCallbackHandler()
         task = asyncio.create_task(main(item.input, handler, queue))
