@@ -10,3 +10,4 @@ fastapi
 pydantic
 uvicorn
 pinecone-text[splade]
+uvicorn[standard]
