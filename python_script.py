@@ -234,6 +234,7 @@ async def main(question, streamhandler, queue):
     gpt4analysis = ChatOpenAI(model_name="gpt-4", temperature=0, max_tokens=2048, streaming=True, callbacks=streamhandler)
     await queue.put("test2")
     response = await gpt4analysis([analysis_system_message, user_message])
+    print(response)
     await queue.put("test3")
     await queue.put("DONE")
     return response.content
@@ -282,7 +283,7 @@ async def websocket_endpoint(websocket: WebSocket):
             continue
         handler = MyCustomAsyncHandler()
         task = asyncio.create_task(main(item.input, handler, queue))
-        #await queue.put("test1")
+        await queue.put("test1")
         print("Started task")
         while True:
             if not queue.empty():
