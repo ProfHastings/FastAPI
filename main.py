@@ -45,7 +45,8 @@ async def websocket_endpoint(websocket: WebSocket):
         task = asyncio.create_task(main(item.input, handler, queue))
         print("Started task")
         while True:
-            token = queue.get()
+            token = queue.get(block=True)
+            print(token)
             if token == "DONE":
                 print("Done sending response")
                 break
