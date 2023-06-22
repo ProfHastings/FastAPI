@@ -286,13 +286,12 @@ async def websocket_endpoint(websocket: WebSocket):
         await queue.put("test1")
         print("Started task")
         while True:
-            if not queue.empty():
-                token = await queue.get()
-                print(token)
-                if token == "DONE":
-                    print("Done sending response")
-                    break
-                await websocket.send_text(token)
+            token = await queue.get()
+            print(token)
+            if token == "DONE":
+                print("Done sending response")
+                break
+            await websocket.send_text(token)
 
 if __name__ == "__main__":
     asyncio.run(main("Alfred arbeitet in einer Fabrik und schläft wo während er am Fließband arbeitet. Es entsteht ein erheblicher Schaden. Kann er zu Schadenersatz verurteilt werden?"))
