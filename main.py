@@ -45,7 +45,7 @@ async def websocket_endpoint(websocket: WebSocket):
         print(f"Received data: {data}")
         try:
             item = Item(**json.loads(data))
-            print(f"Received item: {item}")
+            print(f"Received item: {item.input}")
         except ValidationError as e:
             print(f"Error: {e}")
             continue
