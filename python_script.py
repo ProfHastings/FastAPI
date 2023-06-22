@@ -233,7 +233,7 @@ async def main(question, streamhandler, queue):
     user_message = HumanMessage(content=analysis_userprompt)
     gpt4analysis = ChatOpenAI(model_name="gpt-4", temperature=0, max_tokens=2048, streaming=True, callbacks=streamhandler)
     await queue.put("test2")
-    response = await gpt4analysis.agenerate([analysis_system_message, user_message])
+    response = await gpt4analysis([analysis_system_message, user_message])
     await queue.put("test3")
     await queue.put("DONE")
     return response.content
