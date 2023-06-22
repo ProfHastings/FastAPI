@@ -4,7 +4,6 @@ from python_script import main
 from pydantic import BaseModel
 from queue import Queue
 import json
-import threading
 import asyncio
 from pydantic import BaseModel, ValidationError
 
@@ -30,11 +29,11 @@ app.add_middleware(
 class Item(BaseModel):
     input: str
 
-queue = Queue()
+queue = asyncio.Queue()
 
 class BaseCallbackHandler:
-    def on_llm_new_token(self, token):
-        queue.put(token)
+    async def on_llm_new_token(self, token):
+        await queue.put(token)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -52,8 +51,9 @@ async def websocket_endpoint(websocket: WebSocket):
         handler = BaseCallbackHandler()
         task = asyncio.create_task(main(item.input, handler, queue))
         print("Started task")
+        print(task.done)
         while True:
-            token = queue.get(block=True)
+            token = await queue.get()
             print(token)
             if token == "DONE":
                 print("Done sending response")
