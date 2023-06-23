@@ -231,15 +231,16 @@ async def main(question, streamhandler, queue):
     print(analysis_userprompt)
     user_message = HumanMessage(content=analysis_userprompt)
     gpt4analysis = ChatOpenAI(model_name="gpt-4", temperature=0, max_tokens=2048, streaming=True, callbacks=[streamhandler])
-    await queue.put("test2")
+    #await queue.put("test2")
     try:
         response = await gpt4analysis.agenerate([[analysis_system_message, user_message]])
     except Exception as e:
         print(f"Exception during gpt4analysis: {e}")
-    print(response)
-    await queue.put("test3")
     await queue.put("DONE")
-    return response.content
+    text_output = response.generations[0][0].text
+    print(text_output)
+    #await queue.put("test3")
+    return text_output
 
 class Item(BaseModel):
     input: str
@@ -292,7 +293,7 @@ async def websocket_endpoint(websocket: WebSocket):
             continue
         handler = MyCustomAsyncHandler(queue)
         asyncio.create_task(main(item.input, handler, queue))
-        await queue.put("test1")
+        #await queue.put("test1")
         print("Started task")
         while True:
             token = await queue.get()
