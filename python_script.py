@@ -233,10 +233,10 @@ async def main(question, streamhandler, queue):
     gpt4analysis = ChatOpenAI(model_name="gpt-4", temperature=0, max_tokens=2048, streaming=True, callbacks=[streamhandler])
     await queue.put("test2")
     try:
-        response = await gpt4analysis.agenerate([analysis_system_message, user_message])
+        response = await gpt4analysis.agenerate([[analysis_system_message, user_message]])
     except Exception as e:
         print(f"Exception during gpt4analysis: {e}")
-    #print(response)
+    print(response)
     await queue.put("test3")
     await queue.put("DONE")
     return response.content
@@ -303,4 +303,5 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_text(token)
 
 if __name__ == "__main__":
-    asyncio.run(main("Alfred arbeitet in einer Fabrik und schläft wo während er am Fließband arbeitet. Es entsteht ein erheblicher Schaden. Kann er zu Schadenersatz verurteilt werden?"))
+    queue = asyncio.Queue()
+    asyncio.run(main("Alfred arbeitet in einer Fabrik und schläft wo während er am Fließband arbeitet. Es entsteht ein erheblicher Schaden. Kann er zu Schadenersatz verurteilt werden?", MyCustomAsyncHandler(queue), queue))
