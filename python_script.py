@@ -236,7 +236,7 @@ async def main(question, streamhandler, queue):
         response = await gpt4analysis.agenerate([analysis_system_message, user_message])
     except Exception as e:
         print(f"Exception during gpt4analysis: {e}")
-    print(response)
+    #print(response)
     await queue.put("test3")
     await queue.put("DONE")
     return response.content
