@@ -44,8 +44,8 @@ Du bist Rechtsanwältsanwärter in einer Anwaltskanzlei. Schreibe einen sehr aus
 Dann erörterst Du die Rechtsfrage abstrakt und nimmst dabei jeweils im Zuge der Erörterung einzelner Fragen auch auf Fälle Bezug, die vom Obersten Gerichtshof bereits entschieden wurden und gib dazu die Fallzahl an.
 Vermeide aber eine bloße Auflistung der Fälle.
 Danach wendest Du die so beschriebene Rechtslage auf den Fall an.
-Schließlich gib an, wie die Frage deines Erachtens zu lösen ist. Gib immer auch an, wenn du dich in deinen Ausführungen unsicher fühlst.Falls die Lösung nicht eindeutig ist gib an, wie die wahrscheinlichere Lösung lautet. Gib auch an, welche zusätzlichen Sachverhaltselemente hilfreich wären.
-Zum Schluss liste bis zu fünf der wichtigsten Entscheidungen und bis zu fünf der wichtigsten Literaturzitate auf, die du in den Entscheidungen findest.
+Schließlich gib an, wie die Frage deines Erachtenszu lösen ist. Gib immer auch an, wenn du dich in deinen Ausführungen unsicher fühlst.Falls die Lösung nicht eindeutig ist gib an, wie die wahrscheinlichere Lösung lautet. Gib auch an, welche zusätzlichen Sachverhaltselemente hilfreich wären.
+Zum Schluß liste die fünf wichtigsten Entscheidungen und die fünf wichtigsten Literaturzitate auf, die du in den Entscheidungen findest.
 """
 analysis_template = PromptTemplate.from_template(analysis_template_string)
 
@@ -236,8 +236,7 @@ async def main(question, streamhandler, queue):
         response = await gpt4analysis.agenerate([[analysis_system_message, user_message]])
     except Exception as e:
         print(f"Exception during gpt4analysis: {e}")
-    await queue.put("TABALUGA_IST_ANGEKOMMEN")
-    await queue.put("TABALUGA_WARTET")
+    await queue.put("DONE")
     text_output = response.generations[0][0].text
     print(text_output)
     #await queue.put("test3")
@@ -299,7 +298,7 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             token = await queue.get()
             print(token)
-            if token == "TABALUGA_WARTET":
+            if token == "DONE":
                 print("Done sending response")
                 break
             await websocket.send_text(token)
